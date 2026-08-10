@@ -1,60 +1,73 @@
-# Smart B-roll Placement Detector
+# Next-Gen Learning Dashboard
 
-A small full-stack assignment app that reads a vlog transcript, proposes visually showable B-roll placements, explains each choice, and lets the user reject suggestions locally in the UI.
+A high-fidelity student dashboard prototype for the Frontend Intern Challenge. It uses Next.js App Router, Supabase server-side data fetching, Tailwind CSS, Framer Motion, and Lucide React.
 
-## Run Locally
+## Stack
 
-From a fresh clone, run the backend and frontend in two terminals:
+- Next.js App Router with TypeScript
+- Supabase PostgreSQL via `@supabase/supabase-js`
+- Tailwind CSS v4
+- Framer Motion for staggered entry, spring hover states, progress animation, and sidebar `layoutId` highlights
+- Lucide React icons rendered dynamically from the `icon_name` database field
+
+## Included Features
+
+- Bento dashboard with hero, course, activity, focus, and upcoming lesson tiles
+- Collapsible desktop/tablet sidebar and fixed mobile bottom navigation
+- Framer Motion staggered page load, spring hover states, animated progress bars, and `layoutId` nav highlights
+- Supabase Server Component data fetching with typed payloads
+- Missing-env and database-error fallback state with demo rows
+- Empty course state for valid Supabase connections with no rows
+- `loading.tsx`, Suspense skeletons, `error.tsx`, and `not-found.tsx`
+- Idempotent Supabase seed SQL, `robots.ts`, and `sitemap.ts`
+- Submission-safe `.gitignore` and `.env.example`
+
+## Getting Started
 
 ```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-```bash
-cd frontend
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-Open the Vite URL, usually [http://127.0.0.1:5173](http://127.0.0.1:5173). The frontend loads `frontend/public/transcript.json` and posts it to `http://127.0.0.1:8000/detect`.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Detector
-
-The detector is intentionally rule-based and explainable. It excludes direct-to-camera moments such as `welcome back`, `subscribe`, `thanks for watching`, `see you next time`, and `like and subscribe`, then filters weak abstract/reflection-heavy lines containing terms like `feel`, `believer`, `worth it`, and `stress`. Remaining candidates are scored with weighted visual keywords: places/scenes are worth 3 points per hit, while objects and actions are worth 2 points per hit. Placements snap to full transcript segment boundaries, are capped at 40% total video coverage, and must keep at least a 3 second gap from other accepted placements.
-
-For the included 60 second sample transcript, the 40% cap allows up to 24 seconds of B-roll. The expected selected moments are:
-
-- `13.5-19.0`: road, pine forests, valley
-- `22.5-28.0`: roasting Ethiopian beans by entrance
-- `31.5-37.0`: pour-over, wooden deck, river
-- `41.0-46.5`: old town, streets, vintage shops
-
-## Tests
-
-Run backend unit tests with:
+## Quality Checks
 
 ```bash
-cd backend
-PYTHONPATH=. python3 -m unittest discover -s tests
+npm run lint
+npm run typecheck
+npm run build
 ```
 
-The tests cover greeting/CTA/sign-off exclusions, abstract segment exclusions, visual selection, the 40% coverage cap, segment boundary preservation, the 3 second minimum gap, and the expected sample placements.
+## Supabase Setup
 
-Manual UI checks:
+1. Create a free Supabase project.
+2. Open the SQL editor and run `supabase/seed.sql`.
+3. Copy your project URL and anon key into `.env.local`:
 
-- App loads the transcript.
-- Suggestions appear highlighted.
-- Reasons are visible next to highlighted segments.
-- Rejecting a suggestion updates accepted count and total coverage.
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
 
-## What I'd Do With More Time
+Do not commit `.env.local`.
 
-I would add better local NLP, embeddings for visual concreteness, transcript-level pacing, shot variety constraints, and optional LLM or frame analysis when a paid/API workflow is allowed. I would also add frontend component tests and a small import flow for arbitrary transcript files.
+## Architecture Notes
 
-## AI Tools Disclosure
+The page at `app/page.tsx` is a Server Component. It renders the dashboard shell and fetches courses through `lib/courses.ts`, which creates a server-side Supabase client from environment variables. Course data is never hardcoded into the course UI; if Supabase is missing or unavailable, the app returns a graceful warning tile plus demo rows so reviewers can still inspect the interface locally.
 
-Codex/AI assistance was used for planning and implementation.
+Framer Motion is isolated to client components: `components/bento.tsx`, `components/sidebar.tsx`, and `components/course-card.tsx`. This keeps the server/client split small while still meeting the animation requirements. The bento grid staggers tiles into view, each tile uses transform-only hover elevation, progress bars animate from `scaleX: 0`, and sidebar active states use `layoutId` transitions.
+
+Loading and failure states are covered by `app/loading.tsx`, `components/skeletons.tsx`, and `app/error.tsx`. Skeleton tiles use fixed dimensions so loading states do not resize the bento layout.
+
+## Challenge Checklist
+
+- Bento grid dashboard with hero, dynamic course cards, and activity chart
+- Dark mode-only visual system with subtle gradient mesh and grain
+- Responsive desktop, tablet, and mobile navigation
+- Semantic layout with `aside`, `nav`, `main`, `section`, and `article`
+- Supabase-backed course table schema and seed data
+- Server Component data fetching with typed course payloads
+- Suspense/loading skeletons and graceful Supabase error handling
+- Framer Motion stagger, hover springs, progress animation, and `layoutId` nav highlight
